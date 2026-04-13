@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Immigrant Water Prototype</title>
+  <title>Immigrant Water</title>
   <style>
     :root {
       --bg: #f8f6ef;
       --text: #222;
       --line: #222;
       --soft: rgba(0, 0, 0, 0.14);
-      --soft2: rgba(0, 0, 0, 0.06);
     }
 
     * { box-sizing: border-box; }
@@ -270,41 +269,40 @@
     }
 
     .archive-grid {
-  flex: 1;
-  overflow: auto;
-  column-count: 4;
-  column-gap: 0;
-  padding-right: 0;
-}
+      flex: 1;
+      overflow: auto;
+      column-count: 4;
+      column-gap: 0;
+      padding-right: 0;
+    }
 
-.archive-card {
-  display: block;
-  width: 100%;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  break-inside: avoid;
-}
+    .archive-card {
+      display: block;
+      width: 100%;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+      break-inside: avoid;
+    }
 
-.archive-card:hover {
-  background: transparent;
-  opacity: 0.94;
-}
+    .archive-card:hover {
+      opacity: 0.94;
+    }
 
-.archive-thumb {
-  width: 100%;
-  display: block;
-  overflow: hidden;
-  margin: 0;
-}
+    .archive-thumb {
+      width: 100%;
+      display: block;
+      overflow: hidden;
+      margin: 0;
+    }
 
-.archive-thumb img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
+    .archive-thumb img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
 
     .archive-meta {
       display: none;
@@ -365,6 +363,7 @@
 
     .modal-text p {
       margin: 0 0 14px 0;
+      overflow-wrap: break-word;
     }
 
     .modal-close {
@@ -426,6 +425,7 @@
 
     .answer-box p {
       margin: 10px 0;
+      overflow-wrap: break-word;
     }
 
     .answer-box strong {
@@ -470,6 +470,7 @@
 
     .card-text p {
       margin: 2px 0;
+      overflow-wrap: break-word;
     }
 
     .screen-controls {
@@ -489,7 +490,10 @@
     }
 
     @media (max-width: 900px) {
-      .archive-grid,
+      .archive-grid {
+        column-count: 2;
+      }
+
       .grid-view {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -571,7 +575,7 @@
             <span data-i18n="consent">Would you like to participate in the exhibition with this contribution?</span>
           </label>
 
-          <div class="hint" data-i18n="hint">For now, this prototype saves submissions only in this browser.</div>
+          <div class="hint" data-i18n="hint">Your submission will be shared on this website.</div>
           <button class="button" type="submit" data-i18n="submit" id="submitButton">Submit</button>
           <div class="submit-success" id="submitSuccess"></div>
         </form>
@@ -622,13 +626,134 @@
 
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      serverTimestamp,
+      query,
+      orderBy,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      getStorage,
+      ref,
+      uploadBytes,
+      getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDghizCQbbZIUixjRiKCtiesyumn1WI39I",
+      authDomain: "immigrant-water.firebaseapp.com",
+      projectId: "immigrant-water",
+      storageBucket: "immigrant-water.firebasestorage.app",
+      messagingSenderId: "135908655779",
+      appId: "1:135908655779:web:2ad391d1429c494c307516"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
     const screens = {
       home: document.getElementById('home'),
       submit: document.getElementById('submit'),
       archive: document.getElementById('archive'),
       screen: document.getElementById('screen')
     };
+
+    const archiveGrid = document.getElementById('archiveGrid');
+    const archiveModal = document.getElementById('archiveModal');
+    const modalInner = document.getElementById('modalInner');
+    const closeModalButton = document.getElementById('closeModalButton');
+
+    const form = document.getElementById('submissionForm');
+    const photoInput = document.getElementById('photoInput');
+    const nameInput = document.getElementById('nameInput');
+    const foundInput = document.getElementById('foundInput');
+    const guessInput = document.getElementById('guessInput');
+    const consentInput = document.getElementById('consentInput');
+    const submitButton = document.getElementById('submitButton');
+    const submitSuccess = document.getElementById('submitSuccess');
+
+    const screenInner = document.getElementById('screenInner');
+    const screenStatus = document.getElementById('screenStatus');
+    const togglePlayBtn = document.getElementById('togglePlay');
+    const nextBtn = document.getElementById('nextBtn');
+
+    let currentLanguage = 'EN';
+    let selectedEntry = null;
+    let entries = [];
+    let screenIndex = 0;
+    let showGrid = false;
+    let screenTimer = null;
+    let isPlaying = true;
+
+    const copy = {
+      EN: {
+        homeAdd: 'Add water',
+        homeArchive: 'View waters',
+        bgQuestion: 'Where are you from?',
+        back: '← Back',
+        submitTitle: 'Upload an image of water',
+        archiveTitle: 'Collected waters: images and responses',
+        photo: 'Upload an image of water',
+        name: "Name you'd like to use",
+        found: 'Where did you find this water?',
+        guess: 'Where do you think this water comes from?',
+        consent: 'Would you like to participate in the exhibition with this contribution?',
+        hint: 'Your submission will be shared on this website.',
+        submit: 'Submit',
+        success: 'Uploaded successfully. It will now appear in the archive and screen rotation.',
+        uploading: 'Uploading...',
+        close: 'Close',
+        noEntries: 'Nothing here yet.',
+        noScreenEntries: 'No submissions yet.',
+        modalName: 'Name:',
+        modalFound: 'Where did you find this water?',
+        modalGuess: 'Where do you think this water comes from?',
+        needImage: 'Please upload an image.',
+        needConsent: 'Please confirm exhibition participation.',
+        uploadFailed: 'Upload failed. Please try again.'
+      },
+      DE: {
+        homeAdd: 'Wasser hinzufügen',
+        homeArchive: 'Waters ansehen',
+        bgQuestion: 'Woher kommst du?',
+        back: '← Zurück',
+        submitTitle: 'Ein Bild von Wasser hochladen',
+        archiveTitle: 'Collected waters: images and responses',
+        photo: 'Ein Bild von Wasser hochladen',
+        name: 'Name, den du verwenden möchtest',
+        found: 'Wo hast du dieses Wasser gefunden?',
+        guess: 'Woher kommt dieses Wasser deiner Meinung nach?',
+        consent: 'Möchtest du mit diesem Beitrag an der Ausstellung teilnehmen?',
+        hint: 'Dein Beitrag wird auf dieser Website geteilt.',
+        submit: 'Absenden',
+        success: 'Erfolgreich hochgeladen. Der Beitrag erscheint nun im Archiv und in der Bildschirmrotation.',
+        uploading: 'Wird hochgeladen...',
+        close: 'Schließen',
+        noEntries: 'Noch nichts hier.',
+        noScreenEntries: 'Noch keine Beiträge.',
+        modalName: 'Name:',
+        modalFound: 'Wo hast du dieses Wasser gefunden?',
+        modalGuess: 'Woher kommt dieses Wasser deiner Meinung nach?',
+        needImage: 'Bitte lade ein Bild hoch.',
+        needConsent: 'Bitte bestätige die Teilnahme an der Ausstellung.',
+        uploadFailed: 'Upload fehlgeschlagen. Bitte versuche es erneut.'
+      }
+    };
+
+    function escapeHTML(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
 
     function showScreen(name) {
       Object.values(screens).forEach(el => el.classList.remove('active'));
@@ -652,52 +777,6 @@
       });
     });
 
-    const copy = {
-      EN: {
-        homeAdd: 'Add water',
-        homeArchive: 'View waters',
-        bgQuestion: 'Where are you from?',
-        back: '← Back',
-        submitTitle: 'Upload an image of water',
-        archiveTitle: 'Collected waters: images and responses',
-        photo: 'Upload an image of water',
-        name: "Name you'd like to use",
-        found: 'Where did you find this water?',
-        guess: 'Where do you think this water comes from?',
-        consent: 'Would you like to participate in the exhibition with this contribution?',
-        hint: 'For now, this prototype saves submissions only in this browser.',
-        submit: 'Submit',
-        success: 'Saved in this browser. It will now appear in the archive and screen rotation.',
-        close: 'Close',
-        noEntries: 'Nothing here yet.',
-        modalName: 'Name:',
-        modalFound: 'Where did you find this water?',
-        modalGuess: 'Where do you think this water comes from?'
-      },
-      DE: {
-        homeAdd: 'Wasser hinzufügen',
-        homeArchive: 'Waters ansehen',
-        bgQuestion: 'Woher kommst du?',
-        back: '← Zurück',
-        submitTitle: 'Ein Bild von Wasser hochladen',
-        archiveTitle: 'Collected waters: images and responses',
-        photo: 'Ein Bild von Wasser hochladen',
-        name: 'Name, den du verwenden möchtest',
-        found: 'Wo hast du dieses Wasser gefunden?',
-        guess: 'Woher kommt dieses Wasser deiner Meinung nach?',
-        consent: 'Möchtest du mit diesem Beitrag an der Ausstellung teilnehmen?',
-        hint: 'Dieser Prototyp speichert Beiträge vorerst nur in diesem Browser.',
-        submit: 'Absenden',
-        success: 'Im Browser gespeichert. Es erscheint jetzt im Archiv und in der Bildschirmrotation.',
-        close: 'Schließen',
-        noEntries: 'Noch nichts hier.',
-        modalName: 'Name:',
-        modalFound: 'Wo hast du dieses Wasser gefunden?',
-        modalGuess: 'Woher kommt dieses Wasser deiner Meinung nach?'
-      }
-    };
-
-    let currentLanguage = 'EN';
     const langButtons = document.querySelectorAll('.lang-btn');
 
     function applyLanguage() {
@@ -713,6 +792,7 @@
       document.getElementById('submitTitle').textContent = copy[currentLanguage].submitTitle;
       document.getElementById('archiveTitle').textContent = copy[currentLanguage].archiveTitle;
       document.getElementById('closeModalButton').textContent = copy[currentLanguage].close;
+      togglePlayBtn.textContent = isPlaying ? 'Pause' : 'Play';
 
       document.querySelectorAll('.bg-question').forEach(el => {
         el.textContent = copy[currentLanguage].bgQuestion;
@@ -723,8 +803,11 @@
       });
 
       if (screens.archive.classList.contains('active')) renderArchive();
-      if (document.getElementById('archiveModal').classList.contains('active') && selectedEntry) {
+      if (archiveModal.classList.contains('active') && selectedEntry) {
         openArchiveModal(selectedEntry);
+      }
+      if (screens.screen.classList.contains('active')) {
+        renderScreen();
       }
     }
 
@@ -735,44 +818,6 @@
       });
     });
 
-    applyLanguage();
-
-    const STORAGE_KEY = 'immigrant-water-submissions';
-
-    const starterEntries = [
-      { id: crypto.randomUUID(), name: 'Dahye', found: 'Vienna', guess: 'From the Danube', image: 'https://placehold.co/900x650?text=Water+1' },
-      { id: crypto.randomUUID(), name: 'Anonymous', found: 'Berlin', guess: 'From rain', image: 'https://placehold.co/650x900?text=Water+2' },
-      { id: crypto.randomUUID(), name: 'Mina', found: 'Seoul', guess: 'From a mountain spring', image: 'https://placehold.co/900x650?text=Water+3' },
-      { id: crypto.randomUUID(), name: 'J', found: 'Linz', guess: 'From the tap', image: 'https://placehold.co/650x900?text=Water+4' },
-      { id: crypto.randomUUID(), name: 'Tobias', found: 'Vienna', guess: 'From a lake', image: 'https://placehold.co/900x650?text=Water+5' }
-    ];
-
-    function getStoredEntries() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(starterEntries));
-        return [...starterEntries];
-      }
-      try {
-        return JSON.parse(raw);
-      } catch {
-        return [...starterEntries];
-      }
-    }
-
-    function saveEntries(entries) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-    }
-
-    const form = document.getElementById('submissionForm');
-    const photoInput = document.getElementById('photoInput');
-    const nameInput = document.getElementById('nameInput');
-    const foundInput = document.getElementById('foundInput');
-    const guessInput = document.getElementById('guessInput');
-    const consentInput = document.getElementById('consentInput');
-    const submitButton = document.getElementById('submitButton');
-    const submitSuccess = document.getElementById('submitSuccess');
-
     function updateSubmitState() {
       submitButton.disabled = !consentInput.checked;
     }
@@ -780,54 +825,56 @@
     consentInput.addEventListener('change', updateSubmitState);
     updateSubmitState();
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!consentInput.checked) return;
-
-      const file = photoInput.files[0];
-      let image = 'https://placehold.co/900x650?text=Water';
-
-      if (file) {
-        image = await fileToDataURL(file);
-      }
-
-      const entries = getStoredEntries();
-      entries.unshift({
-        id: crypto.randomUUID(),
-        name: nameInput.value.trim() || 'Anonymous',
-        found: foundInput.value.trim() || 'Unknown',
-        guess: guessInput.value.trim() || 'Unknown',
-        image
-      });
-
-      saveEntries(entries);
-      form.reset();
-      updateSubmitState();
-      submitSuccess.textContent = copy[currentLanguage].success;
-      refreshScreenEntries();
-      renderArchive();
-      showScreen('archive');
-    });
-
-    function fileToDataURL(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+    async function uploadFileToFirebase(file) {
+      const safeName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+      const storageRef = ref(storage, `waters/${safeName}`);
+      await uploadBytes(storageRef, file);
+      return await getDownloadURL(storageRef);
     }
 
-    /* ARCHIVE */
-    const archiveGrid = document.getElementById('archiveGrid');
-    const archiveModal = document.getElementById('archiveModal');
-    const modalInner = document.getElementById('modalInner');
-    const closeModalButton = document.getElementById('closeModalButton');
-    let selectedEntry = null;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      submitSuccess.textContent = '';
+
+      if (!photoInput.files[0]) {
+        alert(copy[currentLanguage].needImage);
+        return;
+      }
+
+      if (!consentInput.checked) {
+        alert(copy[currentLanguage].needConsent);
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = copy[currentLanguage].uploading;
+
+      try {
+        const imageUrl = await uploadFileToFirebase(photoInput.files[0]);
+
+        await addDoc(collection(db, 'waters'), {
+          name: nameInput.value.trim() || 'Anonymous',
+          found: foundInput.value.trim() || 'Unknown',
+          guess: guessInput.value.trim() || 'Unknown',
+          consent: true,
+          imageUrl,
+          createdAt: serverTimestamp()
+        });
+
+        form.reset();
+        updateSubmitState();
+        submitSuccess.textContent = copy[currentLanguage].success;
+        showScreen('archive');
+      } catch (error) {
+        console.error(error);
+        alert(copy[currentLanguage].uploadFailed);
+        updateSubmitState();
+      } finally {
+        submitButton.textContent = copy[currentLanguage].submit;
+      }
+    });
 
     function renderArchive() {
-      const entries = getStoredEntries();
-
       if (!entries.length) {
         archiveGrid.innerHTML = `<div class="archive-empty">${copy[currentLanguage].noEntries}</div>`;
         return;
@@ -836,7 +883,7 @@
       archiveGrid.innerHTML = entries.map(entry => `
         <button class="archive-card" data-entry-id="${entry.id}">
           <div class="archive-thumb">
-            <img src="${entry.image}" alt="Water submission" />
+            <img src="${entry.imageUrl}" alt="Water submission" />
           </div>
           <div class="archive-meta">
             <p><strong>${escapeHTML(entry.name)}</strong></p>
@@ -848,7 +895,7 @@
       archiveGrid.querySelectorAll('.archive-card').forEach(card => {
         card.addEventListener('click', () => {
           const entry = entries.find(item => item.id === card.dataset.entryId);
-          openArchiveModal(entry);
+          if (entry) openArchiveModal(entry);
         });
       });
     }
@@ -857,7 +904,7 @@
       selectedEntry = entry;
       modalInner.innerHTML = `
         <div class="modal-image">
-          <img src="${entry.image}" alt="Water submission" />
+          <img src="${entry.imageUrl}" alt="Water submission" />
         </div>
         <div class="modal-text">
           <p><strong>${copy[currentLanguage].modalName}</strong> ${escapeHTML(entry.name)}</p>
@@ -878,28 +925,11 @@
       if (e.target === archiveModal) closeArchiveModal();
     });
 
-    /* SCREEN */
-    let entries = getStoredEntries();
-    let screenIndex = 0;
-    let showGrid = false;
-    let screenTimer = null;
-    let isPlaying = true;
-
-    const screenInner = document.getElementById('screenInner');
-    const screenStatus = document.getElementById('screenStatus');
-    const togglePlayBtn = document.getElementById('togglePlay');
-    const nextBtn = document.getElementById('nextBtn');
-
-    function refreshScreenEntries() {
-      entries = getStoredEntries();
-      renderScreen();
-    }
-
     function renderSingle(entry) {
       screenInner.innerHTML = `
         <div class="single-view">
           <div class="image-wrap">
-            <img src="${entry.image}" alt="Water submission" />
+            <img src="${entry.imageUrl}" alt="Water submission" />
           </div>
           <div class="answer-box">
             <p><strong>${copy[currentLanguage].modalName}</strong> ${escapeHTML(entry.name)}</p>
@@ -917,7 +947,7 @@
           ${entries.map(entry => `
             <div class="card">
               <div class="card-image">
-                <img src="${entry.image}" alt="Water submission" />
+                <img src="${entry.imageUrl}" alt="Water submission" />
               </div>
               <div class="card-text">
                 <p><strong>${escapeHTML(entry.name)}</strong></p>
@@ -932,9 +962,13 @@
 
     function renderScreen() {
       if (!entries.length) {
-        screenInner.innerHTML = '<div class="answer-box">No submissions yet.</div>';
+        screenInner.innerHTML = `<div class="answer-box">${copy[currentLanguage].noScreenEntries}</div>`;
         screenStatus.textContent = 'empty';
         return;
+      }
+
+      if (screenIndex >= entries.length) {
+        screenIndex = 0;
       }
 
       if (showGrid) {
@@ -984,14 +1018,28 @@
       nextScreenFrame();
     });
 
-    function escapeHTML(str) {
-      return String(str)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-    }
+    const watersQuery = query(collection(db, 'waters'), orderBy('createdAt', 'desc'));
+
+    onSnapshot(watersQuery, (snapshot) => {
+      entries = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      renderArchive();
+      renderScreen();
+
+      if (archiveModal.classList.contains('active') && selectedEntry) {
+        const updated = entries.find(item => item.id === selectedEntry.id);
+        if (updated) {
+          openArchiveModal(updated);
+        } else {
+          closeArchiveModal();
+        }
+      }
+    }, (error) => {
+      console.error(error);
+    });
 
     window.addEventListener('keydown', (e) => {
       if (e.key === '1') showScreen('home');
@@ -1003,6 +1051,8 @@
         nextScreenFrame();
       }
     });
+
+    applyLanguage();
   </script>
 </body>
 </html>
