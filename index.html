@@ -894,9 +894,21 @@ form.addEventListener('submit', async (e) => {
   try {
     const convertedFile = await convertHeicIfNeeded(photoInput.files[0]);
 const file = photoInput.files[0];
-const imageUrl = await uploadFileToFirebase(file.type.includes('heic')
-  ? new File([await heic2any({ blob: file, toType: 'image/jpeg' })], 'converted.jpg', { type: 'image/jpeg' })
-  : file
+
+const isHeic =
+  file.type === "image/heic" ||
+  file.type === "image/heif" ||
+  file.name.toLowerCase().endsWith(".heic") ||
+  file.name.toLowerCase().endsWith(".heif");
+
+const imageUrl = await uploadFileToFirebase(
+  isHeic
+    ? new File(
+        [await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 })],
+        file.name.replace(/\.(heic|heif)$/i, ".jpg"),
+        { type: "image/jpeg" }
+      )
+    : file
 );
     await addDoc(collection(db, 'waters'), {
       name: nameInput.value.trim() || 'Anonymous',
