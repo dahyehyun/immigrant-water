@@ -626,401 +626,136 @@
 
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      serverTimestamp,
-      query,
-      orderBy,
-      onSnapshot
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import {
-      getStorage,
-      ref,
-      uploadBytes,
-      getDownloadURL
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+  <<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDghizCQbbZIUixjRiKCtiesyumn1WI39I",
-      authDomain: "immigrant-water.firebaseapp.com",
-      projectId: "immigrant-water",
-      storageBucket: "immigrant-water.firebasestorage.app",
-      messagingSenderId: "135908655779",
-      appId: "1:135908655779:web:2ad391d1429c494c307516"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyDghizCQbbZIUixjRiKCtiesyumn1WI39I",
+    authDomain: "immigrant-water.firebaseapp.com",
+    projectId: "immigrant-water",
+    storageBucket: "immigrant-water.firebasestorage.app",
+    messagingSenderId: "135908655779",
+    appId: "1:135908655779:web:2ad391d1429c494c307516"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
 
-    const screens = {
-      home: document.getElementById('home'),
-      submit: document.getElementById('submit'),
-      archive: document.getElementById('archive'),
-      screen: document.getElementById('screen')
-    };
+  const screens = {
+    home: document.getElementById('home'),
+    submit: document.getElementById('submit'),
+    archive: document.getElementById('archive'),
+    screen: document.getElementById('screen')
+  };
 
-    const archiveGrid = document.getElementById('archiveGrid');
-    const archiveModal = document.getElementById('archiveModal');
-    const modalInner = document.getElementById('modalInner');
-    const closeModalButton = document.getElementById('closeModalButton');
+  const archiveGrid = document.getElementById('archiveGrid');
+  const archiveModal = document.getElementById('archiveModal');
+  const modalInner = document.getElementById('modalInner');
+  const closeModalButton = document.getElementById('closeModalButton');
 
-    const form = document.getElementById('submissionForm');
-    const photoInput = document.getElementById('photoInput');
-    const nameInput = document.getElementById('nameInput');
-    const foundInput = document.getElementById('foundInput');
-    const guessInput = document.getElementById('guessInput');
-    const consentInput = document.getElementById('consentInput');
-    const submitButton = document.getElementById('submitButton');
-    const submitSuccess = document.getElementById('submitSuccess');
+  const form = document.getElementById('submissionForm');
+  const photoInput = document.getElementById('photoInput');
+  const nameInput = document.getElementById('nameInput');
+  const foundInput = document.getElementById('foundInput');
+  const guessInput = document.getElementById('guessInput');
+  const consentInput = document.getElementById('consentInput');
+  const submitButton = document.getElementById('submitButton');
+  const submitSuccess = document.getElementById('submitSuccess');
 
-    const screenInner = document.getElementById('screenInner');
-    const screenStatus = document.getElementById('screenStatus');
-    const togglePlayBtn = document.getElementById('togglePlay');
-    const nextBtn = document.getElementById('nextBtn');
+  const screenInner = document.getElementById('screenInner');
+  const screenStatus = document.getElementById('screenStatus');
+  const togglePlayBtn = document.getElementById('togglePlay');
+  const nextBtn = document.getElementById('nextBtn');
 
-    let currentLanguage = 'EN';
-    let selectedEntry = null;
-    let entries = [];
-    let screenIndex = 0;
-    let showGrid = false;
-    let screenTimer = null;
-    let isPlaying = true;
+  let currentLanguage = 'EN';
+  let selectedEntry = null;
+  let entries = [];
+  let screenIndex = 0;
+  let showGrid = false;
+  let screenTimer = null;
+  let isPlaying = true;
 
-    const copy = {
-      EN: {
-        homeAdd: 'Add water',
-        homeArchive: 'View waters',
-        bgQuestion: 'Where are you from?',
-        back: '← Back',
-        submitTitle: 'Upload an image of water',
-        archiveTitle: 'Collected waters: images and responses',
-        photo: 'Upload an image of water',
-        name: "Name you'd like to use",
-        found: 'Where did you find this water?',
-        guess: 'Where do you think this water comes from?',
-        consent: 'Would you like to participate in the exhibition with this contribution?',
-        hint: 'Your submission will be shared on this website.',
-        submit: 'Submit',
-        success: 'Uploaded successfully. It will now appear in the archive and screen rotation.',
-        uploading: 'Uploading...',
-        close: 'Close',
-        noEntries: 'Nothing here yet.',
-        noScreenEntries: 'No submissions yet.',
-        modalName: 'Name:',
-        modalFound: 'Where did you find this water?',
-        modalGuess: 'Where do you think this water comes from?',
-        needImage: 'Please upload an image.',
-        needConsent: 'Please confirm exhibition participation.',
-        uploadFailed: 'Upload failed. Please try again.'
-      },
-      DE: {
-        homeAdd: 'Wasser hinzufügen',
-        homeArchive: 'Waters ansehen',
-        bgQuestion: 'Woher kommst du?',
-        back: '← Zurück',
-        submitTitle: 'Ein Bild von Wasser hochladen',
-        archiveTitle: 'Collected waters: images and responses',
-        photo: 'Ein Bild von Wasser hochladen',
-        name: 'Name, den du verwenden möchtest',
-        found: 'Wo hast du dieses Wasser gefunden?',
-        guess: 'Woher kommt dieses Wasser deiner Meinung nach?',
-        consent: 'Möchtest du mit diesem Beitrag an der Ausstellung teilnehmen?',
-        hint: 'Dein Beitrag wird auf dieser Website geteilt.',
-        submit: 'Absenden',
-        success: 'Erfolgreich hochgeladen. Der Beitrag erscheint nun im Archiv und in der Bildschirmrotation.',
-        uploading: 'Wird hochgeladen...',
-        close: 'Schließen',
-        noEntries: 'Noch nichts hier.',
-        noScreenEntries: 'Noch keine Beiträge.',
-        modalName: 'Name:',
-        modalFound: 'Wo hast du dieses Wasser gefunden?',
-        modalGuess: 'Woher kommt dieses Wasser deiner Meinung nach?',
-        needImage: 'Bitte lade ein Bild hoch.',
-        needConsent: 'Bitte bestätige die Teilnahme an der Ausstellung.',
-        uploadFailed: 'Upload fehlgeschlagen. Bitte versuche es erneut.'
-      }
-    };
-
-    function escapeHTML(str) {
-      return String(str)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
+  const copy = {
+    EN: {
+      homeAdd: 'Add water',
+      homeArchive: 'View waters',
+      bgQuestion: 'Where are you from?',
+      back: '← Back',
+      submitTitle: 'Upload an image of water',
+      archiveTitle: 'Collected waters: images and responses',
+      photo: 'Upload an image of water',
+      name: "Name you'd like to use",
+      found: 'Where did you find this water?',
+      guess: 'Where do you think this water comes from?',
+      consent: 'Would you like to participate in the exhibition with this contribution?',
+      hint: 'Your submission will be shared on this website.',
+      submit: 'Submit',
+      success: 'Uploaded successfully. It will now appear in the archive and screen rotation.',
+      uploading: 'Uploading...',
+      close: 'Close',
+      noEntries: 'Nothing here yet.',
+      noScreenEntries: 'No submissions yet.',
+      modalName: 'Name:',
+      modalFound: 'Where did you find this water?',
+      modalGuess: 'Where do you think this water comes from?',
+      needImage: 'Please upload an image.',
+      needConsent: 'Please confirm exhibition participation.',
+      uploadFailed: 'Upload failed. Please try again.'
+    },
+    DE: {
+      homeAdd: 'Wasser hinzufügen',
+      homeArchive: 'Waters ansehen',
+      bgQuestion: 'Woher kommst du?',
+      back: '← Zurück',
+      submitTitle: 'Ein Bild von Wasser hochladen',
+      archiveTitle: 'Collected waters: images and responses',
+      photo: 'Ein Bild von Wasser hochladen',
+      name: 'Name, den du verwenden möchtest',
+      found: 'Wo hast du dieses Wasser gefunden?',
+      guess: 'Woher kommt dieses Wasser deiner Meinung nach?',
+      consent: 'Möchtest du mit diesem Beitrag an der Ausstellung teilnehmen?',
+      hint: 'Dein Beitrag wird auf dieser Website geteilt.',
+      submit: 'Absenden',
+      success: 'Erfolgreich hochgeladen. Der Beitrag erscheint nun im Archiv und in der Bildschirmrotation.',
+      uploading: 'Wird hochgeladen...',
+      close: 'Schließen',
+      noEntries: 'Noch nichts hier.',
+      noScreenEntries: 'Noch keine Beiträge.',
+      modalName: 'Name:',
+      modalFound: 'Wo hast du dieses Wasser gefunden?',
+      modalGuess: 'Woher kommt dieses Wasser deiner Meinung nach?',
+      needImage: 'Bitte lade ein Bild hoch.',
+      needConsent: 'Bitte bestätige die Teilnahme an der Ausstellung.',
+      uploadFailed: 'Upload fehlgeschlagen. Bitte versuche es erneut.'
     }
+  };
 
-    function showScreen(name) {
-      Object.values(screens).forEach(el => el.classList.remove('active'));
-      screens[name].classList.add('active');
+  function escapeHTML(str) {
+    return String(str)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
 
-      if (name === 'screen') {
-        startScreenPlayback();
-      } else {
-        stopScreenPlayback();
-      }
-
-      if (name === 'archive') {
-        renderArchive();
-      }
-    }
-
-    document.querySelectorAll('[data-go]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        showScreen(btn.dataset.go);
-      });
-    });
-
-    const langButtons = document.querySelectorAll('.lang-btn');
-
-    function applyLanguage() {
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.dataset.i18n;
-        el.textContent = copy[currentLanguage][key];
-      });
-
-      document.getElementById('homeAddButton').textContent = copy[currentLanguage].homeAdd;
-      document.getElementById('homeArchiveButton').textContent = copy[currentLanguage].homeArchive;
-      document.getElementById('backLinkSubmit').textContent = copy[currentLanguage].back;
-      document.getElementById('backLinkArchive').textContent = copy[currentLanguage].back;
-      document.getElementById('submitTitle').textContent = copy[currentLanguage].submitTitle;
-      document.getElementById('archiveTitle').textContent = copy[currentLanguage].archiveTitle;
-      document.getElementById('closeModalButton').textContent = copy[currentLanguage].close;
-      togglePlayBtn.textContent = isPlaying ? 'Pause' : 'Play';
-
-      document.querySelectorAll('.bg-question').forEach(el => {
-        el.textContent = copy[currentLanguage].bgQuestion;
-      });
-
-      langButtons.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.lang === currentLanguage);
-      });
-
-      if (screens.archive.classList.contains('active')) renderArchive();
-      if (archiveModal.classList.contains('active') && selectedEntry) {
-        openArchiveModal(selectedEntry);
-      }
-      if (screens.screen.classList.contains('active')) {
-        renderScreen();
-      }
-    }
-
-    langButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        currentLanguage = btn.dataset.lang;
-        applyLanguage();
-      });
-    });
-
-    function updateSubmitState() {
-      submitButton.disabled = !consentInput.checked;
-    }
-
-    consentInput.addEventListener('change', updateSubmitState);
-    updateSubmitState();
-
-    async function uploadFileToFirebase(file) {
-      const safeName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-      const storageRef = ref(storage, `waters/${safeName}`);
-      await uploadBytes(storageRef, file);
-      return await getDownloadURL(storageRef);
-    }
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      submitSuccess.textContent = '';
-
-      if (!photoInput.files[0]) {
-        alert(copy[currentLanguage].needImage);
-        return;
-      }
-
-      if (!consentInput.checked) {
-        alert(copy[currentLanguage].needConsent);
-        return;
-      }
-
-      submitButton.disabled = true;
-      submitButton.textContent = copy[currentLanguage].uploading;
-
-      try {
-        const imageUrl = await uploadFileToFirebase(photoInput.files[0]);
-
-        await addDoc(collection(db, 'waters'), {
-          name: nameInput.value.trim() || 'Anonymous',
-          found: foundInput.value.trim() || 'Unknown',
-          guess: guessInput.value.trim() || 'Unknown',
-          consent: true,
-          imageUrl,
-          createdAt: serverTimestamp()
-        });
-
-        form.reset();
-        updateSubmitState();
-        submitSuccess.textContent = copy[currentLanguage].success;
-        showScreen('archive');
-      } catch (error) {
-        console.error(error);
-        alert(copy[currentLanguage].uploadFailed);
-        updateSubmitState();
-      } finally {
-        submitButton.textContent = copy[currentLanguage].submit;
-      }
-    });
-
-    function renderArchive() {
-      if (!entries.length) {
-        archiveGrid.innerHTML = `<div class="archive-empty">${copy[currentLanguage].noEntries}</div>`;
-        return;
-      }
-
-      archiveGrid.innerHTML = entries.map(entry => `
-        <button class="archive-card" data-entry-id="${entry.id}">
-          <div class="archive-thumb">
-            <img src="${entry.imageUrl}" alt="Water submission" />
-          </div>
-          <div class="archive-meta">
-            <p><strong>${escapeHTML(entry.name)}</strong></p>
-            <p>${escapeHTML(entry.found)}</p>
-          </div>
-        </button>
-      `).join('');
-
-      archiveGrid.querySelectorAll('.archive-card').forEach(card => {
-        card.addEventListener('click', () => {
-          const entry = entries.find(item => item.id === card.dataset.entryId);
-          if (entry) openArchiveModal(entry);
-        });
-      });
-    }
-
-    function openArchiveModal(entry) {
-      selectedEntry = entry;
-      modalInner.innerHTML = `
-        <div class="modal-image">
-          <img src="${entry.imageUrl}" alt="Water submission" />
-        </div>
-        <div class="modal-text">
-          <p><strong>${copy[currentLanguage].modalName}</strong> ${escapeHTML(entry.name)}</p>
-          <p><strong>${copy[currentLanguage].modalFound}</strong><br>${escapeHTML(entry.found)}</p>
-          <p><strong>${copy[currentLanguage].modalGuess}</strong><br>${escapeHTML(entry.guess)}</p>
-        </div>
-      `;
-      archiveModal.classList.add('active');
-    }
-
-    function closeArchiveModal() {
-      archiveModal.classList.remove('active');
-      selectedEntry = null;
-    }
-
-    closeModalButton.addEventListener('click', closeArchiveModal);
-    archiveModal.addEventListener('click', (e) => {
-      if (e.target === archiveModal) closeArchiveModal();
-    });
-
-    function renderSingle(entry) {
-      screenInner.innerHTML = `
-        <div class="single-view">
-          <div class="image-wrap">
-            <img src="${entry.imageUrl}" alt="Water submission" />
-          </div>
-          <div class="answer-box">
-            <p><strong>${copy[currentLanguage].modalName}</strong> ${escapeHTML(entry.name)}</p>
-            <p><strong>${copy[currentLanguage].modalFound}</strong><br>${escapeHTML(entry.found)}</p>
-            <p><strong>${copy[currentLanguage].modalGuess}</strong><br>${escapeHTML(entry.guess)}</p>
-          </div>
-        </div>
-      `;
-      screenStatus.textContent = `slide ${screenIndex + 1} / ${entries.length}`;
-    }
-
-    function renderGrid() {
-      screenInner.innerHTML = `
-        <div class="grid-view">
-          ${entries.map(entry => `
-            <div class="card">
-              <div class="card-image">
-                <img src="${entry.imageUrl}" alt="Water submission" />
-              </div>
-              <div class="card-text">
-                <p><strong>${escapeHTML(entry.name)}</strong></p>
-                <p>${escapeHTML(entry.found)}</p>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-      screenStatus.textContent = 'grid';
-    }
-
-    function renderScreen() {
-      if (!entries.length) {
-        screenInner.innerHTML = `<div class="answer-box">${copy[currentLanguage].noScreenEntries}</div>`;
-        screenStatus.textContent = 'empty';
-        return;
-      }
-
-      if (screenIndex >= entries.length) {
-        screenIndex = 0;
-      }
-
-      if (showGrid) {
-        renderGrid();
-      } else {
-        renderSingle(entries[screenIndex]);
-      }
-    }
-
-    function nextScreenFrame() {
-      if (!entries.length) return;
-
-      if (showGrid) {
-        showGrid = false;
-        screenIndex = 0;
-      } else if ((screenIndex + 1) % 5 === 0 || screenIndex === entries.length - 1) {
-        showGrid = true;
-      } else {
-        screenIndex = (screenIndex + 1) % entries.length;
-      }
-
-      renderScreen();
-    }
-
-    function startScreenPlayback() {
-      renderScreen();
-      if (!isPlaying) return;
-      stopScreenPlayback();
-      screenTimer = setInterval(nextScreenFrame, 5000);
-    }
-
-    function stopScreenPlayback() {
-      if (screenTimer) {
-        clearInterval(screenTimer);
-        screenTimer = null;
-      }
-    }
-
-    togglePlayBtn.addEventListener('click', () => {
-      isPlaying = !isPlaying;
-      togglePlayBtn.textContent = isPlaying ? 'Pause' : 'Play';
-      if (isPlaying) startScreenPlayback();
-      else stopScreenPlayback();
-    });
-
-    nextBtn.addEventListener('click', () => {
-      nextScreenFrame();
-    });
-
-const watersQuery = collection(db, 'waters');
-
-    onSnapshot(watersQuery, (snapshot) => {
+  async function loadEntries() {
+    try {
+      const snapshot = await getDocs(collection(db, 'waters'));
       entries = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -1028,31 +763,287 @@ const watersQuery = collection(db, 'waters');
 
       renderArchive();
       renderScreen();
+    } catch (error) {
+      console.error('Load entries failed:', error);
+    }
+  }
 
-      if (archiveModal.classList.contains('active') && selectedEntry) {
-        const updated = entries.find(item => item.id === selectedEntry.id);
-        if (updated) {
-          openArchiveModal(updated);
-        } else {
-          closeArchiveModal();
-        }
-      }
-    }, (error) => {
-      console.error(error);
+  function showScreen(name) {
+    Object.values(screens).forEach(el => el.classList.remove('active'));
+    screens[name].classList.add('active');
+
+    if (name === 'screen') {
+      startScreenPlayback();
+    } else {
+      stopScreenPlayback();
+    }
+
+    if (name === 'archive') {
+      loadEntries();
+    }
+  }
+
+  document.querySelectorAll('[data-go]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      showScreen(btn.dataset.go);
+    });
+  });
+
+  const langButtons = document.querySelectorAll('.lang-btn');
+
+  function applyLanguage() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      el.textContent = copy[currentLanguage][key];
     });
 
-    window.addEventListener('keydown', (e) => {
-      if (e.key === '1') showScreen('home');
-      if (e.key === '2') showScreen('submit');
-      if (e.key === '3') showScreen('archive');
-      if (e.key === '4') showScreen('screen');
-      if (e.key === 'Escape') closeArchiveModal();
-      if (e.key === 'ArrowRight' && screens.screen.classList.contains('active')) {
-        nextScreenFrame();
-      }
+    document.getElementById('homeAddButton').textContent = copy[currentLanguage].homeAdd;
+    document.getElementById('homeArchiveButton').textContent = copy[currentLanguage].homeArchive;
+    document.getElementById('backLinkSubmit').textContent = copy[currentLanguage].back;
+    document.getElementById('backLinkArchive').textContent = copy[currentLanguage].back;
+    document.getElementById('submitTitle').textContent = copy[currentLanguage].submitTitle;
+    document.getElementById('archiveTitle').textContent = copy[currentLanguage].archiveTitle;
+    document.getElementById('closeModalButton').textContent = copy[currentLanguage].close;
+    togglePlayBtn.textContent = isPlaying ? 'Pause' : 'Play';
+
+    document.querySelectorAll('.bg-question').forEach(el => {
+      el.textContent = copy[currentLanguage].bgQuestion;
     });
 
-    applyLanguage();
-  </script>
+    langButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === currentLanguage);
+    });
+
+    renderArchive();
+    renderScreen();
+
+    if (archiveModal.classList.contains('active') && selectedEntry) {
+      openArchiveModal(selectedEntry);
+    }
+  }
+
+  langButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLanguage = btn.dataset.lang;
+      applyLanguage();
+    });
+  });
+
+  function updateSubmitState() {
+    submitButton.disabled = !consentInput.checked;
+  }
+
+  consentInput.addEventListener('change', updateSubmitState);
+  updateSubmitState();
+
+  async function uploadFileToFirebase(file) {
+    const safeName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+    const storageRef = ref(storage, `waters/${safeName}`);
+    await uploadBytes(storageRef, file);
+    return await getDownloadURL(storageRef);
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitSuccess.textContent = '';
+
+    if (!photoInput.files[0]) {
+      alert(copy[currentLanguage].needImage);
+      return;
+    }
+
+    if (!consentInput.checked) {
+      alert(copy[currentLanguage].needConsent);
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = copy[currentLanguage].uploading;
+
+    try {
+      const imageUrl = await uploadFileToFirebase(photoInput.files[0]);
+
+      await addDoc(collection(db, 'waters'), {
+        name: nameInput.value.trim() || 'Anonymous',
+        found: foundInput.value.trim() || 'Unknown',
+        guess: guessInput.value.trim() || 'Unknown',
+        consent: true,
+        imageUrl,
+        createdAt: serverTimestamp()
+      });
+
+      form.reset();
+      updateSubmitState();
+      submitSuccess.textContent = copy[currentLanguage].success;
+      await loadEntries();
+      showScreen('archive');
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert(copy[currentLanguage].uploadFailed);
+      updateSubmitState();
+    } finally {
+      submitButton.textContent = copy[currentLanguage].submit;
+    }
+  });
+
+  function renderArchive() {
+    if (!entries.length) {
+      archiveGrid.innerHTML = `<div class="archive-empty">${copy[currentLanguage].noEntries}</div>`;
+      return;
+    }
+
+    archiveGrid.innerHTML = entries.map(entry => `
+      <button class="archive-card" data-entry-id="${entry.id}">
+        <div class="archive-thumb">
+          <img src="${entry.imageUrl}" alt="Water submission" />
+        </div>
+        <div class="archive-meta">
+          <p><strong>${escapeHTML(entry.name || '')}</strong></p>
+          <p>${escapeHTML(entry.found || '')}</p>
+        </div>
+      </button>
+    `).join('');
+
+    archiveGrid.querySelectorAll('.archive-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const entry = entries.find(item => item.id === card.dataset.entryId);
+        if (entry) openArchiveModal(entry);
+      });
+    });
+  }
+
+  function openArchiveModal(entry) {
+    selectedEntry = entry;
+    modalInner.innerHTML = `
+      <div class="modal-image">
+        <img src="${entry.imageUrl}" alt="Water submission" />
+      </div>
+      <div class="modal-text">
+        <p><strong>${copy[currentLanguage].modalName}</strong> ${escapeHTML(entry.name || '')}</p>
+        <p><strong>${copy[currentLanguage].modalFound}</strong><br>${escapeHTML(entry.found || '')}</p>
+        <p><strong>${copy[currentLanguage].modalGuess}</strong><br>${escapeHTML(entry.guess || '')}</p>
+      </div>
+    `;
+    archiveModal.classList.add('active');
+  }
+
+  function closeArchiveModal() {
+    archiveModal.classList.remove('active');
+    selectedEntry = null;
+  }
+
+  closeModalButton.addEventListener('click', closeArchiveModal);
+  archiveModal.addEventListener('click', (e) => {
+    if (e.target === archiveModal) closeArchiveModal();
+  });
+
+  function renderSingle(entry) {
+    screenInner.innerHTML = `
+      <div class="single-view">
+        <div class="image-wrap">
+          <img src="${entry.imageUrl}" alt="Water submission" />
+        </div>
+        <div class="answer-box">
+          <p><strong>${copy[currentLanguage].modalName}</strong> ${escapeHTML(entry.name || '')}</p>
+          <p><strong>${copy[currentLanguage].modalFound}</strong><br>${escapeHTML(entry.found || '')}</p>
+          <p><strong>${copy[currentLanguage].modalGuess}</strong><br>${escapeHTML(entry.guess || '')}</p>
+        </div>
+      </div>
+    `;
+    screenStatus.textContent = `slide ${screenIndex + 1} / ${entries.length}`;
+  }
+
+  function renderGrid() {
+    screenInner.innerHTML = `
+      <div class="grid-view">
+        ${entries.map(entry => `
+          <div class="card">
+            <div class="card-image">
+              <img src="${entry.imageUrl}" alt="Water submission" />
+            </div>
+            <div class="card-text">
+              <p><strong>${escapeHTML(entry.name || '')}</strong></p>
+              <p>${escapeHTML(entry.found || '')}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    screenStatus.textContent = 'grid';
+  }
+
+  function renderScreen() {
+    if (!entries.length) {
+      screenInner.innerHTML = `<div class="answer-box">${copy[currentLanguage].noScreenEntries}</div>`;
+      screenStatus.textContent = 'empty';
+      return;
+    }
+
+    if (screenIndex >= entries.length) {
+      screenIndex = 0;
+    }
+
+    if (showGrid) {
+      renderGrid();
+    } else {
+      renderSingle(entries[screenIndex]);
+    }
+  }
+
+  function nextScreenFrame() {
+    if (!entries.length) return;
+
+    if (showGrid) {
+      showGrid = false;
+      screenIndex = 0;
+    } else if ((screenIndex + 1) % 5 === 0 || screenIndex === entries.length - 1) {
+      showGrid = true;
+    } else {
+      screenIndex = (screenIndex + 1) % entries.length;
+    }
+
+    renderScreen();
+  }
+
+  function startScreenPlayback() {
+    renderScreen();
+    if (!isPlaying) return;
+    stopScreenPlayback();
+    screenTimer = setInterval(nextScreenFrame, 5000);
+  }
+
+  function stopScreenPlayback() {
+    if (screenTimer) {
+      clearInterval(screenTimer);
+      screenTimer = null;
+    }
+  }
+
+  togglePlayBtn.addEventListener('click', () => {
+    isPlaying = !isPlaying;
+    togglePlayBtn.textContent = isPlaying ? 'Pause' : 'Play';
+    if (isPlaying) startScreenPlayback();
+    else stopScreenPlayback();
+  });
+
+  nextBtn.addEventListener('click', () => {
+    nextScreenFrame();
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '1') showScreen('home');
+    if (e.key === '2') showScreen('submit');
+    if (e.key === '3') showScreen('archive');
+    if (e.key === '4') showScreen('screen');
+    if (e.key === 'Escape') closeArchiveModal();
+    if (e.key === 'ArrowRight' && screens.screen.classList.contains('active')) {
+      nextScreenFrame();
+    }
+  });
+
+  applyLanguage();
+  loadEntries();
+</script>
 </body>
 </html>
