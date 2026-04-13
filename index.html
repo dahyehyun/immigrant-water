@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Immigrant Water Prototype</title>
+  <style>
+    :root {
+      --bg: #f8f6ef;
+      --text: #222;
+      --line: #222;
+      --soft: rgba(0, 0, 0, 0.14);
+      --soft2: rgba(0, 0, 0, 0.06);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    .app {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      padding: 24px;
+      overflow: hidden;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    .background-text {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .line {
+      position: absolute;
+      white-space: nowrap;
+      color: var(--soft);
+      font-size: 18px;
+    }
+
+    .line1 { top: 24%; left: -260px; animation: move1 14s linear infinite; }
+    .line2 { top: 48%; left: -320px; animation: move2 18s linear infinite; }
+    .line3 { top: 72%; left: -220px; animation: move3 22s linear infinite; }
+
+    @keyframes move1 {
+      from { transform: translateX(0); }
+      to { transform: translateX(1400px); }
+    }
+
+    @keyframes move2 {
+      from { transform: translateX(0); }
+      to { transform: translateX(1500px); }
+    }
+
+    @keyframes move3 {
+      from { transform: translateX(0); }
+      to { transform: translateX(1350px); }
+    }
+
+    .top-right {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 8px;
+      z-index: 3;
+    }
+
+    button, .button, .small-button, input, textarea {
+      font: inherit;
+    }
+
+    .lang-btn, .button, .small-button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .lang-btn {
+      padding: 6px 10px;
+    }
+
+    .lang-btn.active {
+      background: var(--text);
+      color: white;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 22px;
+      text-decoration: none;
+      min-width: 220px;
+    }
+
+    .button[disabled] {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .small-button {
+      padding: 10px 14px;
+    }
+
+    .back-link {
+      text-decoration: none;
+      color: var(--text);
+      width: fit-content;
+      position: relative;
+      z-index: 2;
+    }
+
+    .title {
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      font-weight: 500;
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+
+    /* HOME */
+    #home {
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .home-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .animation-placeholder {
+      width: min(480px, 70vw);
+      aspect-ratio: 6 / 5;
+      display: block;
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    .home-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* SUBMIT */
+    #submit {
+      align-items: center;
+      justify-content: center;
+    }
+
+    .submit-wrap {
+      width: min(680px, 92vw);
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label span {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    input[type="text"], textarea, input[type="file"] {
+      border: 1px solid var(--line);
+      background: white;
+      padding: 12px;
+      color: var(--text);
+      width: 100%;
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    .hint {
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+    .submit-success {
+      font-size: 15px;
+      line-height: 1.5;
+      min-height: 24px;
+    }
+
+    .consent-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .consent-row input {
+      margin-top: 3px;
+    }
+
+    /* ARCHIVE */
+    #archive {
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+    }
+
+    .archive-wrap {
+      width: min(1180px, 96vw);
+      height: 100%;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .archive-header {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .archive-grid {
+  flex: 1;
+  overflow: auto;
+  column-count: 4;
+  column-gap: 0;
+  padding-right: 0;
+}
+
+.archive-card {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  break-inside: avoid;
+}
+
+.archive-card:hover {
+  background: transparent;
+  opacity: 0.94;
+}
+
+.archive-thumb {
+  width: 100%;
+  display: block;
+  overflow: hidden;
+  margin: 0;
+}
+
+.archive-thumb img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+    .archive-meta {
+      display: none;
+    }
+
+    .archive-empty {
+      opacity: 0.6;
+      font-size: 15px;
+    }
+
+    .modal {
+      position: absolute;
+      inset: 0;
+      background: rgba(248, 246, 239, 0.96);
+      z-index: 4;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-inner {
+      width: min(900px, 92vw);
+      max-height: 92vh;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .modal-image {
+      width: 100%;
+      min-height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-image img {
+      max-width: 100%;
+      max-height: 62vh;
+      width: auto;
+      height: auto;
+      display: block;
+    }
+
+    .modal-text {
+      width: min(700px, 100%);
+      font-size: 18px;
+      line-height: 1.6;
+      text-align: left;
+    }
+
+    .modal-text p {
+      margin: 0 0 14px 0;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 5;
+    }
+
+    /* SCREEN */
+    #screen {
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .screen-inner {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .single-view {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+    }
+
+    .image-wrap {
+      width: min(900px, 86vw);
+      height: 58vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      display: block;
+    }
+
+    .answer-box {
+      max-width: 760px;
+      text-align: center;
+      font-size: 19px;
+      line-height: 1.6;
+    }
+
+    .answer-box p {
+      margin: 10px 0;
+    }
+
+    .answer-box strong {
+      font-weight: 500;
+    }
+
+    .grid-view {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      align-content: center;
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-image {
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-image img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      display: block;
+    }
+
+    .card-text {
+      font-size: 14px;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .card-text p {
+      margin: 2px 0;
+    }
+
+    .screen-controls {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 2;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .mono {
+      font-size: 13px;
+      opacity: 0.6;
+    }
+
+    @media (max-width: 900px) {
+      .archive-grid,
+      .grid-view {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .answer-box {
+        font-size: 17px;
+      }
+
+      .modal-text {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <section id="home" class="screen active">
+      <div class="background-text">
+        <div class="line line1 bg-question">Where are you from?</div>
+        <div class="line line2 bg-question">Where are you from?</div>
+        <div class="line line3 bg-question">Where are you from?</div>
+      </div>
+
+      <div class="top-right">
+        <button class="lang-btn active" data-lang="EN">EN</button>
+        <button class="lang-btn" data-lang="DE">DE</button>
+      </div>
+
+      <div class="home-content">
+        <h1 class="title">Immigrant Water</h1>
+        <div class="animation-placeholder"></div>
+        <div class="home-buttons">
+          <button class="button" data-go="submit" id="homeAddButton">Add water</button>
+          <button class="button" data-go="archive" id="homeArchiveButton">View waters</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="submit" class="screen">
+      <div class="background-text">
+        <div class="line line1 bg-question">Where are you from?</div>
+        <div class="line line2 bg-question">Where are you from?</div>
+        <div class="line line3 bg-question">Where are you from?</div>
+      </div>
+
+      <div class="top-right">
+        <button class="lang-btn active" data-lang="EN">EN</button>
+        <button class="lang-btn" data-lang="DE">DE</button>
+      </div>
+
+      <div class="submit-wrap">
+        <a href="#" class="back-link" data-go="home" id="backLinkSubmit">← Back</a>
+        <h1 class="title" id="submitTitle" style="font-size: clamp(1.8rem, 4vw, 3rem);">Upload an image of water</h1>
+
+        <form class="form" id="submissionForm">
+          <label class="field">
+            <span data-i18n="photo">Upload an image of water</span>
+            <input type="file" id="photoInput" accept="image/*" />
+          </label>
+
+          <label class="field">
+            <span data-i18n="name">Name you'd like to use</span>
+            <input type="text" id="nameInput" />
+          </label>
+
+          <label class="field">
+            <span data-i18n="found">Where did you find this water?</span>
+            <input type="text" id="foundInput" />
+          </label>
+
+          <label class="field">
+            <span data-i18n="guess">Where do you think this water comes from?</span>
+            <textarea id="guessInput"></textarea>
+          </label>
+
+          <label class="consent-row">
+            <input type="checkbox" id="consentInput" />
+            <span data-i18n="consent">Would you like to participate in the exhibition with this contribution?</span>
+          </label>
+
+          <div class="hint" data-i18n="hint">For now, this prototype saves submissions only in this browser.</div>
+          <button class="button" type="submit" data-i18n="submit" id="submitButton">Submit</button>
+          <div class="submit-success" id="submitSuccess"></div>
+        </form>
+      </div>
+    </section>
+
+    <section id="archive" class="screen">
+      <div class="background-text">
+        <div class="line line1 bg-question">Where are you from?</div>
+        <div class="line line2 bg-question">Where are you from?</div>
+        <div class="line line3 bg-question">Where are you from?</div>
+      </div>
+
+      <div class="top-right">
+        <button class="lang-btn active" data-lang="EN">EN</button>
+        <button class="lang-btn" data-lang="DE">DE</button>
+      </div>
+
+      <div class="archive-wrap">
+        <a href="#" class="back-link" data-go="home" id="backLinkArchive">← Back</a>
+        <div class="archive-header">
+          <h1 class="title" id="archiveTitle" style="font-size: clamp(1.8rem, 4vw, 3rem);">Collected waters: images and responses</h1>
+        </div>
+        <div class="archive-grid" id="archiveGrid"></div>
+      </div>
+
+      <div class="modal" id="archiveModal">
+        <button class="small-button modal-close" id="closeModalButton">Close</button>
+        <div class="modal-inner" id="modalInner"></div>
+      </div>
+    </section>
+
+    <section id="screen" class="screen">
+      <div class="background-text">
+        <div class="line line1 bg-question">Where are you from?</div>
+        <div class="line line2 bg-question">Where are you from?</div>
+        <div class="line line3 bg-question">Where are you from?</div>
+      </div>
+
+      <div class="screen-controls">
+        <button class="small-button" id="togglePlay">Pause</button>
+        <button class="small-button" id="nextBtn">Next</button>
+        <span class="mono" id="screenStatus">slide</span>
+      </div>
+
+      <div class="screen-inner" id="screenInner"></div>
+    </section>
+
+  </div>
+
+  <script>
+    const screens = {
+      home: document.getElementById('home'),
+      submit: document.getElementById('submit'),
+      archive: document.getElementById('archive'),
+      screen: document.getElementById('screen')
+    };
+
+    function showScreen(name) {
+      Object.values(screens).forEach(el => el.classList.remove('active'));
+      screens[name].classList.add('active');
+
+      if (name === 'screen') {
+        startScreenPlayback();
+      } else {
+        stopScreenPlayback();
+      }
+
+      if (name === 'archive') {
+        renderArchive();
+      }
+    }
+
+    document.querySelectorAll('[data-go]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        showScreen(btn.dataset.go);
+      });
+    });
+
+    const copy = {
+      EN: {
+        homeAdd: 'Add water',
+        homeArchive: 'View waters',
+        bgQuestion: 'Where are you from?',
+        back: '← Back',
+        submitTitle: 'Upload an image of water',
+        archiveTitle: 'Collected waters: images and responses',
+        photo: 'Upload an image of water',
+        name: "Name you'd like to use",
+        found: 'Where did you find this water?',
+        guess: 'Where do you think this water comes from?',
+        consent: 'Would you like to participate in the exhibition with this contribution?',
+        hint: 'For now, this prototype saves submissions only in this browser.',
+        submit: 'Submit',
+        success: 'Saved in this browser. It will now appear in the archive and screen rotation.',
+        close: 'Close',
+        noEntries: 'Nothing here yet.',
+        modalName: 'Name:',
+        modalFound: 'Where did you find this water?',
+        modalGuess: 'Where do you think this water comes from?'
+      },
+      DE: {
+        homeAdd: 'Wasser hinzufügen',
+        homeArchive: 'Waters ansehen',
+        bgQuestion: 'Woher kommst du?',
+        back: '← Zurück',
+        submitTitle: 'Ein Bild von Wasser hochladen',
+        archiveTitle: 'Collected waters: images and responses',
+        photo: 'Ein Bild von Wasser hochladen',
+        name: 'Name, den du verwenden möchtest',
+        found: 'Wo hast du dieses Wasser gefunden?',
+        guess: 'Woher kommt dieses Wasser deiner Meinung nach?',
+        consent: 'Möchtest du mit diesem Beitrag an der Ausstellung teilnehmen?',
+        hint: 'Dieser Prototyp speichert Beiträge vorerst nur in diesem Browser.',
+        submit: 'Absenden',
+        success: 'Im Browser gespeichert. Es erscheint jetzt im Archiv und in der Bildschirmrotation.',
+        close: 'Schließen',
+        noEntries: 'Noch nichts hier.',
+        modalName: 'Name:',
+        modalFound: 'Wo hast du dieses Wasser gefunden?',
+        modalGuess: 'Woher kommt dieses Wasser deiner Meinung nach?'
+      }
+    };
+
+    let currentLanguage = 'EN';
+    const langButtons = document.querySelectorAll('.lang-btn');
+
+    function applyLanguage() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        el.textContent = copy[currentLanguage][key];
+      });
+
+      document.getElementById('homeAddButton').textContent = copy[currentLanguage].homeAdd;
+      document.getElementById('homeArchiveButton').textContent = copy[currentLanguage].homeArchive;
+      document.getElementById('backLinkSubmit').textContent = copy[currentLanguage].back;
+      document.getElementById('backLinkArchive').textContent = copy[currentLanguage].back;
+      document.getElementById('submitTitle').textContent = copy[currentLanguage].submitTitle;
+      document.getElementById('archiveTitle').textContent = copy[currentLanguage].archiveTitle;
+      document.getElementById('closeModalButton').textContent = copy[currentLanguage].close;
+
+      document.querySelectorAll('.bg-question').forEach(el => {
+        el.textContent = copy[currentLanguage].bgQuestion;
+      });
+
+      langButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === currentLanguage);
+      });
+
+      if (screens.archive.classList.contains('active')) renderArchive();
+      if (document.getElementById('archiveModal').classList.contains('active') && selectedEntry) {
+        openArchiveModal(selectedEntry);
+      }
+    }
+
+    langButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentLanguage = btn.dataset.lang;
+        applyLanguage();
+      });
+    });
+
+    applyLanguage();
+
+    const STORAGE_KEY = 'immigrant-water-submissions';
+
+    const starterEntries = [
+      { id: crypto.randomUUID(), name: 'Dahye', found: 'Vienna', guess: 'From the Danube', image: 'https://placehold.co/900x650?text=Water+1' },
+      { id: crypto.randomUUID(), name: 'Anonymous', found: 'Berlin', guess: 'From rain', image: 'https://placehold.co/650x900?text=Water+2' },
+      { id: crypto.randomUUID(), name: 'Mina', found: 'Seoul', guess: 'From a mountain spring', image: 'https://placehold.co/900x650?text=Water+3' },
+      { id: crypto.randomUUID(), name: 'J', found: 'Linz', guess: 'From the tap', image: 'https://placehold.co/650x900?text=Water+4' },
+      { id: crypto.randomUUID(), name: 'Tobias', found: 'Vienna', guess: 'From a lake', image: 'https://placehold.co/900x650?text=Water+5' }
+    ];
+
+    function getStoredEntries() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(starterEntries));
+        return [...starterEntries];
+      }
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return [...starterEntries];
+      }
+    }
+
+    function saveEntries(entries) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
+
+    const form = document.getElementById('submissionForm');
+    const photoInput = document.getElementById('photoInput');
+    const nameInput = document.getElementById('nameInput');
+    const foundInput = document.getElementById('foundInput');
+    const guessInput = document.getElementById('guessInput');
+    const consentInput = document.getElementById('consentInput');
+    const submitButton = document.getElementById('submitButton');
+    const submitSuccess = document.getElementById('submitSuccess');
+
+    function updateSubmitState() {
+      submitButton.disabled = !consentInput.checked;
+    }
+
+    consentInput.addEventListener('change', updateSubmitState);
+    updateSubmitState();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!consentInput.checked) return;
+
+      const file = photoInput.files[0];
+      let image = 'https://placehold.co/900x650?text=Water';
+
+      if (file) {
+        image = await fileToDataURL(file);
+      }
+
+      const entries = getStoredEntries();
+      entries.unshift({
+        id: crypto.randomUUID(),
+        name: nameInput.value.trim() || 'Anonymous',
+        found: foundInput.value.trim() || 'Unknown',
+        guess: guessInput.value.trim() || 'Unknown',
+        image
+      });
+
+      saveEntries(entries);
+      form.reset();
+      updateSubmitState();
+      submitSuccess.textContent = copy[currentLanguage].success;
+      refreshScreenEntries();
+      renderArchive();
+      showScreen('archive');
+    });
+
+    function fileToDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    /* ARCHIVE */
+    const archiveGrid = document.getElementById('archiveGrid');
+    const archiveModal = document.getElementById('archiveModal');
+    const modalInner = document.getElementById('modalInner');
+    const closeModalButton = document.getElementById('closeModalButton');
+    let selectedEntry = null;
+
+    function renderArchive() {
+      const entries = getStoredEntries();
+
+      if (!entries.length) {
+        archiveGrid.innerHTML = `<div class="archive-empty">${copy[currentLanguage].noEntries}</div>`;
+        return;
+      }
+
+      archiveGrid.innerHTML = entries.map(entry => `
+        <button class="archive-card" data-entry-id="${entry.id}">
+          <div class="archive-thumb">
+            <img src="${entry.image}" alt="Water submission" />
+          </div>
+          <div class="archive-meta">
+            <p><strong>${escapeHTML(entry.name)}</strong></p>
+            <p>${escapeHTML(entry.found)}</p>
+          </div>
+        </button>
+      `).join('');
+
+      archiveGrid.querySelectorAll('.archive-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const entry = entries.find(item => item.id === card.dataset.entryId);
+          openArchiveModal(entry);
+        });
+      });
+    }
+
+    function openArchiveModal(entry) {
+      selectedEntry = entry;
+      modalInner.innerHTML = `
+        <div class="modal-image">
+          <img src="${entry.image}" alt="Water submission" />
+        </div>
+        <div class="modal-text">
+          <p><strong>${copy[currentLanguage].modalName}</strong> ${escapeHTML(entry.name)}</p>
+          <p><strong>${copy[currentLanguage].modalFound}</strong><br>${escapeHTML(entry.found)}</p>
+          <p><strong>${copy[currentLanguage].modalGuess}</strong><br>${escapeHTML(entry.guess)}</p>
+        </div>
+      `;
+      archiveModal.classList.add('active');
+    }
+
+    function closeArchiveModal() {
+      archiveModal.classList.remove('active');
+      selectedEntry = null;
+    }
+
+    closeModalButton.addEventListener('click', closeArchiveModal);
+    archiveModal.addEventListener('click', (e) => {
+      if (e.target === archiveModal) closeArchiveModal();
+    });
+
+    /* SCREEN */
+    let entries = getStoredEntries();
+    let screenIndex = 0;
+    let showGrid = false;
+    let screenTimer = null;
+    let isPlaying = true;
+
+    const screenInner = document.getElementById('screenInner');
+    const screenStatus = document.getElementById('screenStatus');
+    const togglePlayBtn = document.getElementById('togglePlay');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function refreshScreenEntries() {
+      entries = getStoredEntries();
+      renderScreen();
+    }
+
+    function renderSingle(entry) {
+      screenInner.innerHTML = `
+        <div class="single-view">
+          <div class="image-wrap">
+            <img src="${entry.image}" alt="Water submission" />
+          </div>
+          <div class="answer-box">
+            <p><strong>${copy[currentLanguage].modalName}</strong> ${escapeHTML(entry.name)}</p>
+            <p><strong>${copy[currentLanguage].modalFound}</strong><br>${escapeHTML(entry.found)}</p>
+            <p><strong>${copy[currentLanguage].modalGuess}</strong><br>${escapeHTML(entry.guess)}</p>
+          </div>
+        </div>
+      `;
+      screenStatus.textContent = `slide ${screenIndex + 1} / ${entries.length}`;
+    }
+
+    function renderGrid() {
+      screenInner.innerHTML = `
+        <div class="grid-view">
+          ${entries.map(entry => `
+            <div class="card">
+              <div class="card-image">
+                <img src="${entry.image}" alt="Water submission" />
+              </div>
+              <div class="card-text">
+                <p><strong>${escapeHTML(entry.name)}</strong></p>
+                <p>${escapeHTML(entry.found)}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      screenStatus.textContent = 'grid';
+    }
+
+    function renderScreen() {
+      if (!entries.length) {
+        screenInner.innerHTML = '<div class="answer-box">No submissions yet.</div>';
+        screenStatus.textContent = 'empty';
+        return;
+      }
+
+      if (showGrid) {
+        renderGrid();
+      } else {
+        renderSingle(entries[screenIndex]);
+      }
+    }
+
+    function nextScreenFrame() {
+      if (!entries.length) return;
+
+      if (showGrid) {
+        showGrid = false;
+        screenIndex = 0;
+      } else if ((screenIndex + 1) % 5 === 0 || screenIndex === entries.length - 1) {
+        showGrid = true;
+      } else {
+        screenIndex = (screenIndex + 1) % entries.length;
+      }
+
+      renderScreen();
+    }
+
+    function startScreenPlayback() {
+      renderScreen();
+      if (!isPlaying) return;
+      stopScreenPlayback();
+      screenTimer = setInterval(nextScreenFrame, 5000);
+    }
+
+    function stopScreenPlayback() {
+      if (screenTimer) {
+        clearInterval(screenTimer);
+        screenTimer = null;
+      }
+    }
+
+    togglePlayBtn.addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      togglePlayBtn.textContent = isPlaying ? 'Pause' : 'Play';
+      if (isPlaying) startScreenPlayback();
+      else stopScreenPlayback();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      nextScreenFrame();
+    });
+
+    function escapeHTML(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '1') showScreen('home');
+      if (e.key === '2') showScreen('submit');
+      if (e.key === '3') showScreen('archive');
+      if (e.key === '4') showScreen('screen');
+      if (e.key === 'Escape') closeArchiveModal();
+      if (e.key === 'ArrowRight' && screens.screen.classList.contains('active')) {
+        nextScreenFrame();
+      }
+    });
+  </script>
+</body>
+</html>
