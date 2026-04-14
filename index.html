@@ -272,15 +272,17 @@
       flex-shrink: 0;
     }
 
-    .archive-grid {
+    .archive-scroll {
       flex: 1;
       min-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
+      position: relative;
+    }
+
+    .archive-grid {
       column-count: 4;
       column-gap: 0;
-      padding-right: 0;
-      position: relative;
     }
 
     .archive-card {
@@ -655,7 +657,11 @@
         <div class="archive-header">
           <h1 class="title" id="archiveTitle" style="font-size: clamp(1.8rem, 4vw, 3rem);">Collected waters: images and responses</h1>
         </div>
-        <div class="archive-grid" id="archiveGrid"></div>
+
+        <div class="archive-scroll" id="archiveScroll">
+          <div class="archive-grid" id="archiveGrid"></div>
+        </div>
+
         <div id="archiveDropOverlay" class="archive-drop-overlay"></div>
       </div>
 
@@ -722,6 +728,7 @@
     };
 
     const archiveGrid = document.getElementById('archiveGrid');
+    const archiveScroll = document.getElementById('archiveScroll');
     const archiveDropOverlay = document.getElementById('archiveDropOverlay');
     const archiveModal = document.getElementById('archiveModal');
     const modalInner = document.getElementById('modalInner');
