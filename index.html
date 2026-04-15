@@ -545,23 +545,24 @@
 
     /* LETTER POPUP */
     .about-trigger {
-      position: absolute;
-      right: 20px;
-      bottom: 20px;
-      width: 32px;
-      height: 32px;
-      border: 1px solid var(--line);
-      background: white;
-      color: var(--text);
-      cursor: pointer;
-      z-index: 6;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      line-height: 1;
-      padding: 0;
-    }
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: auto;
+  min-width: 60px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--text);
+  cursor: pointer;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+}
 
     .about-popup {
       position: absolute;
@@ -765,7 +766,7 @@
       <div class="screen-inner" id="screenInner"></div>
     </section>
 
-    <button class="about-trigger" id="aboutTrigger" aria-label="Open letter">✉</button>
+    <button class="about-trigger" id="aboutTrigger" aria-label="Open letter">letter</button>
 
     <div class="about-popup" id="aboutPopup" aria-hidden="true">
       <button class="about-close" id="aboutClose" aria-label="Close letter">×</button>
