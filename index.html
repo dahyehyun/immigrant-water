@@ -591,15 +591,16 @@
     }
 
     .about-close {
-      border: 0;
-      background: transparent;
-      color: var(--text);
-      cursor: pointer;
-      font-size: 18px;
-      line-height: 1;
-      padding: 0;
-    }
-
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
     .about-content {
       padding: 12px;
       font-size: 16px;
@@ -775,10 +776,11 @@
     <button class="about-trigger" id="aboutTrigger" aria-label="Open about">?</button>
 
     <div class="about-popup" id="aboutPopup" aria-hidden="true">
-      <div class="about-header">
-        <div id="aboutTitle">About</div>
-        <button class="about-close" id="aboutClose" aria-label="Close about">×</button>
-      </div>
+     <div class="about-popup" id="aboutPopup">
+  <button class="about-close" id="aboutClose">×</button>
+
+  <div class="about-content" id="aboutContent"></div>
+</div>
 
       <div class="about-content" id="aboutContent">
         <p>
@@ -901,19 +903,24 @@
         needConsent: 'Please confirm exhibition participation.',
         uploadFailed: 'Upload failed. Please try again.',
         aboutTitle: 'About',
-        aboutHtml: `
-          <p>
-            Immigrant Water is a participatory project that invites people to submit
-            images of water and guess where it comes from.
-          </p>
-          <p>
-            This simple act echoes the familiar question “Where are you from?” and
-            the impulse to locate the origin of something — or someone.
-          </p>
-          <p>
-            Initiated by Dahye Hyun.
-          </p>
-        `
+  aboutHtml: `
+<p>Have you ever thought about where water comes from?</p>
+
+<p>Water comes from everywhere and goes everywhere.
+The water in my body may have come from another time and place.</p>
+
+<p>People often ask me where I come from.
+I often think about what that question means.</p>
+
+<p>I invite you into this thought.</p>
+
+<p>Where does the water you found come from?
+And where do you come from?</p>
+
+<p>How different is water from us?</p>
+
+<p>— Dahye Hyun</p>
+`
       },
       DE: {
         homeAdd: 'Wasseren hinzufügen',
@@ -941,19 +948,24 @@
         needConsent: 'Bitte bestätige die Teilnahme an der Ausstellung.',
         uploadFailed: 'Upload fehlgeschlagen. Bitte versuche es erneut.',
         aboutTitle: 'About',
-        aboutHtml: `
-          <p>
-            Immigrant Water ist ein partizipatives Projekt, das Menschen dazu einlädt,
-            Bilder von Wasser einzureichen und zu erraten, woher es kommt.
-          </p>
-          <p>
-            Diese einfache Handlung spiegelt die vertraute Frage „Woher kommst du?“
-            und den Impuls wider, den Ursprung von etwas — oder jemandem — zu verorten.
-          </p>
-          <p>
-            Initiiert von Dahye Hyun.
-          </p>
-        `
+    aboutHtml: `
+<p>Hast du jemals darüber nachgedacht, woher Wasser kommt?</p>
+
+<p>Wasser kommt von überall und geht überallhin.
+Das Wasser in meinem Körper könnte aus einer anderen Zeit und einem anderen Ort stammen.</p>
+
+<p>Menschen fragen mich oft, woher ich komme.
+Ich denke oft darüber nach, was diese Frage bedeutet.</p>
+
+<p>Ich lade dich in diesen Gedanken ein.</p>
+
+<p>Woher kommt das Wasser, das du gefunden hast?
+Und woher kommst du?</p>
+
+<p>Wie unterschiedlich ist Wasser von uns?</p>
+
+<p>— Dahye Hyun</p>
+`
       }
     };
 
