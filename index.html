@@ -543,6 +543,80 @@
       opacity: 0.6;
     }
 
+    /* ABOUT POPUP */
+    .about-trigger {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--text);
+      cursor: pointer;
+      z-index: 6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .about-popup {
+      position: absolute;
+      right: 20px;
+      bottom: 64px;
+      width: min(380px, calc(100vw - 40px));
+      max-height: min(420px, 58vh);
+      background: white;
+      border: 1px solid var(--line);
+      z-index: 6;
+      display: none;
+      overflow: hidden;
+    }
+
+    .about-popup.open {
+      display: block;
+    }
+
+    .about-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 16px;
+      background: white;
+    }
+
+    .about-close {
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .about-content {
+      padding: 12px;
+      font-size: 16px;
+      line-height: 1.45;
+      overflow-y: auto;
+      max-height: calc(min(420px, 58vh) - 46px);
+      text-align: left;
+    }
+
+    .about-content p {
+      margin: 0 0 12px 0;
+    }
+
+    .about-content p:last-child {
+      margin-bottom: 0;
+    }
+
     @media (max-width: 900px) {
       .archive-grid {
         column-count: 2;
@@ -562,6 +636,17 @@
 
       .modal-text {
         font-size: 16px;
+      }
+
+      .about-popup {
+        width: min(360px, calc(100vw - 32px));
+        right: 16px;
+        bottom: 60px;
+      }
+
+      .about-trigger {
+        right: 16px;
+        bottom: 16px;
       }
     }
   </style>
@@ -687,6 +772,31 @@
       <div class="screen-inner" id="screenInner"></div>
     </section>
 
+    <button class="about-trigger" id="aboutTrigger" aria-label="Open about">?</button>
+
+    <div class="about-popup" id="aboutPopup" aria-hidden="true">
+      <div class="about-header">
+        <div id="aboutTitle">About</div>
+        <button class="about-close" id="aboutClose" aria-label="Close about">×</button>
+      </div>
+
+      <div class="about-content" id="aboutContent">
+        <p>
+          Immigrant Water is a participatory project that invites people to submit
+          images of water and guess where it comes from.
+        </p>
+
+        <p>
+          This simple act echoes the familiar question “Where are you from?” and
+          the impulse to locate the origin of something — or someone.
+        </p>
+
+        <p>
+          Initiated by Dahye.
+        </p>
+      </div>
+    </div>
+
   </div>
 
   <script type="module">
@@ -748,6 +858,12 @@
     const togglePlayBtn = document.getElementById('togglePlay');
     const nextBtn = document.getElementById('nextBtn');
 
+    const aboutTrigger = document.getElementById('aboutTrigger');
+    const aboutPopup = document.getElementById('aboutPopup');
+    const aboutClose = document.getElementById('aboutClose');
+    const aboutTitle = document.getElementById('aboutTitle');
+    const aboutContent = document.getElementById('aboutContent');
+
     let currentLanguage = 'EN';
     let selectedEntry = null;
     let entries = [];
@@ -783,7 +899,21 @@
         modalGuess: 'Where do you think this water comes from?',
         needImage: 'Please upload an image.',
         needConsent: 'Please confirm exhibition participation.',
-        uploadFailed: 'Upload failed. Please try again.'
+        uploadFailed: 'Upload failed. Please try again.',
+        aboutTitle: 'About',
+        aboutHtml: `
+          <p>
+            Immigrant Water is a participatory project that invites people to submit
+            images of water and guess where it comes from.
+          </p>
+          <p>
+            This simple act echoes the familiar question “Where are you from?” and
+            the impulse to locate the origin of something — or someone.
+          </p>
+          <p>
+            Initiated by Dahye.
+          </p>
+        `
       },
       DE: {
         homeAdd: 'Wasseren hinzufügen',
@@ -809,7 +939,21 @@
         modalGuess: 'Woher kommt dieses Wasser deiner Meinung nach?',
         needImage: 'Bitte lade ein Bild hoch.',
         needConsent: 'Bitte bestätige die Teilnahme an der Ausstellung.',
-        uploadFailed: 'Upload fehlgeschlagen. Bitte versuche es erneut.'
+        uploadFailed: 'Upload fehlgeschlagen. Bitte versuche es erneut.',
+        aboutTitle: 'About',
+        aboutHtml: `
+          <p>
+            Immigrant Water ist ein partizipatives Projekt, das Menschen dazu einlädt,
+            Bilder von Wasser einzureichen und zu erraten, woher es kommt.
+          </p>
+          <p>
+            Diese einfache Handlung spiegelt die vertraute Frage „Woher kommst du?“
+            und den Impuls wider, den Ursprung von etwas — oder jemandem — zu verorten.
+          </p>
+          <p>
+            Initiiert von Dahye.
+          </p>
+        `
       }
     };
 
@@ -922,6 +1066,8 @@
       document.getElementById('archiveTitle').textContent = copy[currentLanguage].archiveTitle;
       document.getElementById('closeModalButton').textContent = copy[currentLanguage].close;
       togglePlayBtn.textContent = isPlaying ? 'Pause' : 'Play';
+      aboutTitle.textContent = copy[currentLanguage].aboutTitle;
+      aboutContent.innerHTML = copy[currentLanguage].aboutHtml;
 
       document.querySelectorAll('.bg-question').forEach(el => {
         el.textContent = copy[currentLanguage].bgQuestion;
@@ -944,6 +1090,36 @@
         currentLanguage = btn.dataset.lang;
         applyLanguage();
       });
+    });
+
+    function openAbout() {
+      aboutPopup.classList.add('open');
+      aboutPopup.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeAbout() {
+      aboutPopup.classList.remove('open');
+      aboutPopup.setAttribute('aria-hidden', 'true');
+    }
+
+    function toggleAbout() {
+      aboutPopup.classList.toggle('open');
+      const isOpen = aboutPopup.classList.contains('open');
+      aboutPopup.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+    }
+
+    aboutTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAbout();
+    });
+
+    aboutClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeAbout();
+    });
+
+    aboutPopup.addEventListener('click', (e) => {
+      e.stopPropagation();
     });
 
     function updateSubmitState() {
@@ -1169,9 +1345,21 @@
       if (e.key === '2') showScreen('submit');
       if (e.key === '3') showScreen('archive');
       if (e.key === '4') showScreen('screen');
-      if (e.key === 'Escape') closeArchiveModal();
+      if (e.key === 'Escape') {
+        closeArchiveModal();
+        closeAbout();
+      }
       if (e.key === 'ArrowRight' && screens.screen.classList.contains('active')) {
         nextScreenFrame();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      const clickedInsidePopup = aboutPopup.contains(e.target);
+      const clickedTrigger = aboutTrigger.contains(e.target);
+
+      if (!clickedInsidePopup && !clickedTrigger) {
+        closeAbout();
       }
     });
 
