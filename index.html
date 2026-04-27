@@ -709,11 +709,11 @@ background: white;
 
       <div class="home-content">
         <h1 class="title">Immigrant Water</h1>
-const videos = ["rain1.mp4", "rain2.mp4"];
-const randomVideo = videos[Math.floor(Math.random() * videos.length)];
-
-document.querySelector("#rainVideo source").src = randomVideo;
-document.getElementById("rainVideo").load();
+<div class="animation-placeholder">
+  <video id="rainVideo" autoplay muted loop playsinline webkit-playsinline>
+    <source src="rain1.mp4" type="video/mp4">
+  </video>
+</div>
         <div class="home-buttons">
           <button class="button" data-go="submit" id="homeAddButton">Add water</button>
           <button class="button" data-go="archive" id="homeArchiveButton">View waters</button>
@@ -1546,7 +1546,11 @@ document.getElementById("rainVideo").load();
           : 'archive-drop-overlay';
       }
     });
+const videos = ["rain1.mp4", "rain2.mp4"];
+const randomVideo = videos[Math.floor(Math.random() * videos.length)];
 
+document.querySelector("#rainVideo source").src = randomVideo;
+document.getElementById("rainVideo").load();
     applyLanguage();
     loadEntries(true);
   </script>
