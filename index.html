@@ -176,6 +176,14 @@
       aspect-ratio: 6 / 5;
       display: block;
       background: rgba(0, 0, 0, 0.03);
+      overflow: hidden;
+    }
+
+    .animation-placeholder video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     .home-buttons {
@@ -702,7 +710,9 @@
 
       <div class="home-content">
         <h1 class="title">Immigrant Water</h1>
-        <div class="animation-placeholder"></div>
+        <div class="animation-placeholder">
+          <video id="home-video" autoplay muted playsinline preload="auto"></video>
+        </div>
         <div class="home-buttons">
           <button class="button" data-go="submit" id="homeAddButton">Add water</button>
           <button class="button" data-go="archive" id="homeArchiveButton">View waters</button>
@@ -1538,6 +1548,24 @@
 
     applyLanguage();
     loadEntries(true);
+  </script>
+
+  <script>
+    // Play the two homepage videos one after the other.
+    (() => {
+      const homeVideo = document.getElementById('home-video');
+      if (!homeVideo) return;
+
+      const videos = ['rain1.mp4', 'rain2.mp4'];
+      let currentVideo = 0;
+
+      homeVideo.src = videos[currentVideo];
+      homeVideo.addEventListener('ended', () => {
+        currentVideo = (currentVideo + 1) % videos.length;
+        homeVideo.src = videos[currentVideo];
+        homeVideo.play().catch(() => {});
+      });
+    })();
   </script>
 </body>
 </html>
